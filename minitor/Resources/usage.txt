@@ -1,0 +1,56 @@
+﻿Home at https://github.com/phende/minitor
+
+Launch server with:
+  minitor server
+
+Navigate to http://localhost to observe status changes posted via API calls.
+Each monitor can have status Normal, Unknown, Warning, Error or Dead.
+
+Note: web server runs on port 80, which requires administrative rights.
+
+Using API:
+
+  Status updates are sent to 'http://<server>/set/<path>?<parameters>'.
+  'path' is a hierarchical path, for instance 'Production/Servers/Proxies'.
+
+  Parameters:
+
+  - m[onitor]
+      Mandatory monitor name, must be unique within each path.
+
+  - s[tatus]
+      Optional status, default to 'Normal'.
+
+  - t[ext]
+      Optional additional status text, defaults to empty.
+
+  - v[alidity]
+      How much time can pass without updates, before a given monitor
+      automatically turns to 'Unknown' status. Default is 1h.
+
+  - e[xpiration]
+      How much time can pass without updates, before a given monitor is
+      automatically removed from status lists. Default is 48h.
+
+  All parameters can be abbreviated, as can all status values.
+
+  Valid units for 'validity' and 'expiration' are 's', 'm', 'h' and 'd'
+  respectively for seconds, minutes (default), hours and days.
+
+  If a negative 'expiration' is provided, after the set delay the entry
+  will turn to 'Dead' status instead of being removed.
+
+PowerShell examples:
+
+  $url = "http://localhost/set"
+
+  Invoke-RestMethod $url/Production -Body @{monitor="SRV1"; status="Warning"; }
+  Invoke-RestMethod $url/Test -Body @{m="SRV1"; t="All good"; s="n"; }
+  irm $url -Body @{m="SRV8"; status="err"; val="120s"; }
+
+  Invoke-WebRequest "$url/Dev?monitor=SRV3&status=normal"
+  iwr "$($url)?mon=General&stat=warning&valid=5s&expir=15s"
+  iwr "$($url)?m=General&s=warning&v=5s&e=15s"
+
+  iwr "$url/Dev?m=SRV3&e=0"
+
