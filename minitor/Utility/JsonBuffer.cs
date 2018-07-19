@@ -2,11 +2,11 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Minitor.Web
+namespace Minitor.Utility
 {
     //--------------------------------------------------------------------------
     // Simple and ugly way to construct JSON in a bytes array
-    static class Json
+    static class JsonBuffer
     {
         //----------------------------------------------------------------------
         public static void AppendProperty(string name, string value, ref byte[] buffer, ref int count)

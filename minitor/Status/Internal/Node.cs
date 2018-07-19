@@ -1,12 +1,13 @@
-﻿using System;
+﻿using Minitor.Utility;
+using System;
 using System.Threading.Tasks;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 
-namespace Minitor.Engine.Internal
+namespace Minitor.Status.Internal
 {
     //--------------------------------------------------------------------------
-    // A tree node, has a parent and children nodes, holds Monitors
+    // A tree node, has a parent and children nodes, holds Monitor objects
     internal class Node
     {
         private static int _lastid;
@@ -22,7 +23,7 @@ namespace Minitor.Engine.Internal
         private readonly ConcurrentDictionary<int, Subscription> _subscriptions;
 
         private int _subnum;
-        private Status _status;
+        private StatusState _status;
 
         //----------------------------------------------------------------------
         public Node() : this(null, null) { }
@@ -50,7 +51,7 @@ namespace Minitor.Engine.Internal
         private bool IsEmpty { get => _children.Count == 0 && _monitors.Count == 0 && _subscriptions.Count == 0; }
 
         //----------------------------------------------------------------------
-        private Node GetNode(string[] path, int index)
+        private Node GetNode(string[] path, int index, bool create)
         {
             Node node;
             string key;
@@ -60,21 +61,23 @@ namespace Minitor.Engine.Internal
 
             if (!_children.TryGetValue(key, out node))
             {
+                if (!create) return null;
+
                 node = new Node(this, key);
                 _children.Add(key, node);
-                SendEvent(Minitor.Engine.Update.ChildAdded, node._id, node._name, node._path, Status.Unknown);
+                SendEvent(StatusEventType.ChildAdded, node._id, node._name, node._path, StatusState.Unknown);
             }
-            return node.GetNode(path, index + 1);
+            return node.GetNode(path, index + 1, create);
         }
-        public Node GetNode(string[] path) => GetNode(path, 0);
+        public Node GetNode(string[] path, bool create) => GetNode(path, 0, create);
 
         //----------------------------------------------------------------------
         private void RefreshStatus()
         {
-            Event evnt;
-            Status status;
+            StatusEvent evnt;
+            StatusState status;
 
-            status = Status.Normal;
+            status = StatusState.Normal;
 
             foreach (Node node in _children.Values)
                 if (node._status > status)
@@ -87,19 +90,19 @@ namespace Minitor.Engine.Internal
             if (status != _status)
             {
                 _status = status;
-                SendEvent(Minitor.Engine.Update.StatusChanged, _id, _name, null, _status);
-                _parent?.SendEvent(Minitor.Engine.Update.ChildChanged, _id, _name, _path, _status);
+                SendEvent(StatusEventType.StatusChanged, _id, _name, null, _status);
+                _parent?.SendEvent(StatusEventType.ChildChanged, _id, _name, _path, _status);
                 _parent?.RefreshStatus();
 
-                evnt = new Event(Minitor.Engine.Update.ParentChanged, _id, _name, _path, _status);
+                evnt = new StatusEvent(StatusEventType.ParentChanged, _id, _name, _path, _status);
                 CascadeEvent(evnt);
             }
         }
 
         //----------------------------------------------------------------------
-        public void Update(string monitor, string text, Status status, TimeSpan validity, TimeSpan expiration)
+        public void UpdateMonitor(string monitor, string text, StatusState status, TimeSpan validity, TimeSpan expiration)
         {
-            Update evnt;
+            StatusEventType evnt;
             DateTime utc;
             Monitor mon;
 
@@ -115,13 +118,13 @@ namespace Minitor.Engine.Internal
                     mon.KeepExpired = expiration.Ticks < 0;
                     return;
                 }
-                evnt = Minitor.Engine.Update.MonitorChanged;
+                evnt = StatusEventType.MonitorChanged;
             }
             else
             {
                 mon = new Monitor(++_lastid, this, monitor);
                 _monitors.Add(monitor, mon);
-                evnt = Minitor.Engine.Update.MonitorAdded;
+                evnt = StatusEventType.MonitorAdded;
             }
 
             mon.Text = text;
@@ -147,7 +150,7 @@ namespace Minitor.Engine.Internal
         }
 
         //----------------------------------------------------------------------
-        public IDisposable Subscribe(Func<Event, Task> observer)
+        public IDisposable Subscribe(Func<StatusEvent, Task> observer)
         {
             int num;
             Subscription sub;
@@ -159,28 +162,28 @@ namespace Minitor.Engine.Internal
             try
             {
                 // Send initial state...
-                sub.Send(new Event(Minitor.Engine.Update.BeginInitialize, 0));
+                sub.Send(new StatusEvent(StatusEventType.BeginInitialize, 0));
 
                 // Parent nodes
                 foreach (Node node in PathFromRoot())
-                    sub.Send(new Event(Minitor.Engine.Update.ParentChanged, node._id, node._name, node._path, node._status));
+                    sub.Send(new StatusEvent(StatusEventType.ParentChanged, node._id, node._name, node._path, node._status));
 
                 // Self
-                sub.Send(new Event(Minitor.Engine.Update.ParentChanged, _id, _name, null, _status));
+                sub.Send(new StatusEvent(StatusEventType.ParentChanged, _id, _name, null, _status));
 
                 // Children nodes
                 foreach (Node node in _children.Values)
-                    sub.Send(new Event(Minitor.Engine.Update.ChildAdded, node._id, node._name, node._path, node._status));
+                    sub.Send(new StatusEvent(StatusEventType.ChildAdded, node._id, node._name, node._path, node._status));
 
                 // Mnitors
                 foreach (Monitor monitor in _monitors.Values)
-                    sub.Send(new Event(Minitor.Engine.Update.MonitorAdded, monitor.Id, monitor.Name, monitor.Text, monitor.Status));
+                    sub.Send(new StatusEvent(StatusEventType.MonitorAdded, monitor.Id, monitor.Name, monitor.Text, monitor.Status));
 
-                sub.Send(new Event(Minitor.Engine.Update.EndInitialize, 0));
+                sub.Send(new StatusEvent(StatusEventType.EndInitialize, 0));
             }
             catch (Exception e)
             {
-                Log.Debug(e);
+                Logger.Debug(e);
                 sub.Dispose();
                 return null;
             }
@@ -214,7 +217,7 @@ namespace Minitor.Engine.Internal
                 foreach (Node node in nodesRemoveList)
                 {
                     _children.Remove(node._name);
-                    SendEvent(Minitor.Engine.Update.ChildRemoved, node._id, node._name);
+                    SendEvent(StatusEventType.ChildRemoved, node._id, node._name);
                 }
             }
 
@@ -225,11 +228,11 @@ namespace Minitor.Engine.Internal
                 {
                     if (monitor.KeepExpired)
                     {
-                        if (monitor.Status != Status.Dead)
+                        if (monitor.Status != StatusState.Dead)
                         {
                             refresh = true;
-                            monitor.Status = Status.Dead;
-                            SendEvent(Minitor.Engine.Update.MonitorChanged, monitor.Id, monitor.Name, monitor.Text, monitor.Status);
+                            monitor.Status = StatusState.Dead;
+                            SendEvent(StatusEventType.MonitorChanged, monitor.Id, monitor.Name, monitor.Text, monitor.Status);
                         }
                     }
                     else
@@ -241,11 +244,11 @@ namespace Minitor.Engine.Internal
                 }
                 else if (utc >= monitor.ValidUntil)
                 {
-                    if (monitor.Status != Status.Unknown)
+                    if (monitor.Status != StatusState.Unknown && monitor.Status != StatusState.Completed)
                     {
                         refresh = true;
-                        monitor.Status = Status.Unknown;
-                        SendEvent(Minitor.Engine.Update.MonitorChanged, monitor.Id, monitor.Name, monitor.Text, monitor.Status);
+                        monitor.Status = StatusState.Unknown;
+                        SendEvent(StatusEventType.MonitorChanged, monitor.Id, monitor.Name, monitor.Text, monitor.Status);
                     }
                 }
             }
@@ -254,7 +257,7 @@ namespace Minitor.Engine.Internal
                 foreach (Monitor monitor in monRemoveList)
                 {
                     _monitors.Remove(monitor.Name);
-                    SendEvent(Minitor.Engine.Update.MonitorRemoved, monitor.Id, monitor.Name);
+                    SendEvent(StatusEventType.MonitorRemoved, monitor.Id, monitor.Name);
                 }
             }
 
@@ -263,21 +266,21 @@ namespace Minitor.Engine.Internal
         public void Trim() => Trim(DateTime.UtcNow);
 
         //----------------------------------------------------------------------
-        private void SendEvent(Update type, int id, string name = null, string text = null, Status status = Status.Unknown)
+        private void SendEvent(StatusEventType type, int id, string name = null, string text = null, StatusState status = StatusState.Unknown)
         {
             if (_subscriptions.Count > 0)
-                SendEvent(new Event(type, id, name, text, status));
+                SendEvent(new StatusEvent(type, id, name, text, status));
         }
 
         //----------------------------------------------------------------------
-        private void SendEvent(Event evnt)
+        private void SendEvent(StatusEvent evnt)
         {
             foreach (Subscription sub in _subscriptions.Values)
                 sub.Send(evnt);
         }
 
         //----------------------------------------------------------------------
-        private void CascadeEvent(Event evnt)
+        private void CascadeEvent(StatusEvent evnt)
         {
             foreach (Node node in _children.Values)
             {

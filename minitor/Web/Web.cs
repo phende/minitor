@@ -1,4 +1,5 @@
-﻿using Minitor.Engine;
+﻿using Minitor.Status;
+using Minitor.Utility;
 using System;
 using System.IO;
 using System.Net;
@@ -23,7 +24,7 @@ namespace Minitor.Web
         //----------------------------------------------------------------------
         public static void RespondError(int reqnum, HttpListenerResponse response, HttpStatusCode code)
         {
-            Log.Debug($"{reqnum}: Returning error {code.ToString()}");
+            Logger.Debug($"{reqnum}: Returning error {code.ToString()}");
 
             try
             {
@@ -70,7 +71,7 @@ namespace Minitor.Web
                         break;
                     default:
                         response.ContentType = "application/octet-stream";
-                        Log.Debug($"{reqnum}: Mime type for {ext} is not defined");
+                        Logger.Debug($"{reqnum}: Mime type for {ext} is not defined");
                         break;
                 }
 
@@ -96,59 +97,59 @@ namespace Minitor.Web
         public static string ExtractPathLevel(string path, out string remaining)
         {
             int pos;
-            int d;
+            int prefixed;
 
-            d = (path.Length > 0 && path[0] == '/') ? 1 : 0;
-            pos = path.IndexOf('/', d);
+            prefixed = (path.Length > 0 && path[0] == '/') ? 1 : 0;
+            pos = path.IndexOf('/', prefixed);
             if (pos >= 0)
             {
                 remaining = path.Substring(pos + 1);
-                return path.Substring(d, pos - d);
+                return path.Substring(prefixed, pos - prefixed);
             }
             else
             {
                 remaining = string.Empty;
-                return path.Substring(d);
+                return path.Substring(prefixed);
             }
         }
 
         //----------------------------------------------------------------------
-        public static ArraySegment<byte> GetEventBytes(Event evnt, ref byte[] buffer)
+        public static ArraySegment<byte> GetEventBytes(StatusEvent evnt, ref byte[] buffer)
         {
             int count;
 
             count = 0;
 
-            Json.AppendByte((byte)'{', ref buffer, ref count);
+            JsonBuffer.AppendByte((byte)'{', ref buffer, ref count);
 
-            Json.AppendProperty("type", evnt.EventType.ToString(), ref buffer, ref count);
+            JsonBuffer.AppendProperty("type", evnt.EventType.ToString(), ref buffer, ref count);
 
             if (evnt.Id != 0)
             {
-                Json.AppendByte((byte)',', ref buffer, ref count);
-                Json.AppendProperty("id", evnt.Id.ToString(), ref buffer, ref count);
+                JsonBuffer.AppendByte((byte)',', ref buffer, ref count);
+                JsonBuffer.AppendProperty("id", evnt.Id.ToString(), ref buffer, ref count);
             }
 
             if (evnt.Name != null)
             {
-                Json.AppendByte((byte)',', ref buffer, ref count);
-                Json.AppendProperty("name", evnt.Name, ref buffer, ref count);
+                JsonBuffer.AppendByte((byte)',', ref buffer, ref count);
+                JsonBuffer.AppendProperty("name", evnt.Name, ref buffer, ref count);
             }
 
             if (evnt.Text != null)
             {
-                Json.AppendByte((byte)',', ref buffer, ref count);
-                Json.AppendProperty("text", evnt.Text, ref buffer, ref count);
+                JsonBuffer.AppendByte((byte)',', ref buffer, ref count);
+                JsonBuffer.AppendProperty("text", evnt.Text, ref buffer, ref count);
             }
 
 
             if (evnt.Status != null)
             {
-                Json.AppendByte((byte)',', ref buffer, ref count);
-                Json.AppendProperty("status", evnt.Status.Value.ToString(), ref buffer, ref count);
+                JsonBuffer.AppendByte((byte)',', ref buffer, ref count);
+                JsonBuffer.AppendProperty("status", evnt.Status.Value.ToString(), ref buffer, ref count);
             }
 
-            Json.AppendByte((byte)'}', ref buffer, ref count);
+            JsonBuffer.AppendByte((byte)'}', ref buffer, ref count);
 
             return new ArraySegment<byte>(buffer, 0, count);
         }

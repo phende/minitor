@@ -1,23 +1,26 @@
 ﻿// Style classes per status
 var pathClass = {
     "Normal": "text-muted",
+    "Completed": "text-success",
+    "Unknown": "text-primary font-weight-bold",
     "Warning": "text-warning font-weight-bold",
     "Error": "text-danger font-weight-bold",
-    "Unknown": "text-primary font-weight-bold",
     "Dead": "text-dark font-weight-bold"
 };
 var childClass = {
     "Normal": "btn btn-light btn-sm text-muted child-link",
+    "Completed": "btn btn-success btn-sm text-light child-link",
+    "Unknown": "btn btn-primary btn-sm text-light child-link",
     "Warning": "btn btn-warning btn-sm child child-link",
     "Error": "btn btn-danger btn-sm text-light child-link",
-    "Unknown": "btn btn-primary btn-sm text-light child-link",
     "Dead": "btn btn-dark btn-sm text-light child-link"
 };
 var monitorClass = {
     "Normal": "bg-light text-muted",
+    "Completed": "bg-success text-light",
+    "Unknown": "bg-primary text-light",
     "Warning": "bg-warning",
     "Error": "bg-danger text-light",
-    "Unknown": "bg-primary text-light",
     "Dead": "bg-dark text-light"
 };
 
@@ -89,16 +92,12 @@ function connectSocket() {
 
 //--------------------------------------------------------------------------
 function doCountdown() {
-    var str = "";
-    for (var i = 0; i < countdown; i++)
-        str = str.concat(".");
-    stateProgress.innerText = str;
+    stateProgress.innerText = "".concat(countdown).concat("s");
 
     if (countdown == 0) {
         connectSocket();
         return;
     }
-
     countdown = countdown - 1;
     window.setTimeout(doCountdown, 1000);
 }

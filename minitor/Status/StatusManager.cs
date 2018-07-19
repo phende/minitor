@@ -1,13 +1,14 @@
-﻿using Minitor.Engine.Internal;
+﻿using Minitor.Status.Internal;
+using Minitor.Utility;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Minitor.Engine
+namespace Minitor.Status
 {
     //--------------------------------------------------------------------------
     // Synchronizes and manages a tree of Node and Monitor objects
-    public class Engine : IDisposable
+    public class StatusManager : IDisposable
     {
         private static char[] _separators = new char[] { '/' };
 
@@ -15,11 +16,11 @@ namespace Minitor.Engine
         private Timer _timer;
 
         //----------------------------------------------------------------------
-        public Engine()
+        public StatusManager()
         {
             TimeSpan interval;
 
-            interval = Configuration.TrimInterval;
+            interval = Configuration.StatusTrimInterval;
             _timer = new Timer(Trim, null, interval, interval);
         }
 
@@ -38,31 +39,30 @@ namespace Minitor.Engine
         }
 
         //----------------------------------------------------------------------
-        public bool Update(string path, string name, string text, Status status, TimeSpan validity, TimeSpan expiration)
+        public bool Update(string path, string name, string text, StatusState status, TimeSpan validity, TimeSpan expiration)
         {
             string[] parts;
             Node node;
 
-            if (status < Status.Normal || status > Status.Dead)
+            if (status < StatusState.Normal || status > StatusState.Dead)
                 return false;
 
             if (name == null)
                 return false;
 
-            parts = BreakPath(path);
-            if (parts == null)
+            if ((parts = BreakPath(path)) == null)
                 return false;
 
             lock (_root)
             {
-                node = _root.GetNode(parts);
-                node.Update(name, text, status, validity, expiration);
+                node = _root.GetNode(parts, true);
+                node.UpdateMonitor(name, text, status, validity, expiration);
             }
             return true;
         }
 
         //----------------------------------------------------------------------
-        public IDisposable Subscribe(string path, Func<Event, Task> observer)
+        public IDisposable Subscribe(string path, Func<StatusEvent, Task> observer)
         {
             string[] parts;
             Node node;
@@ -70,13 +70,12 @@ namespace Minitor.Engine
             if (observer == null)
                 return null;
 
-            parts = BreakPath(path);
-            if (parts == null)
+            if ((parts = BreakPath(path)) == null)
                 return null;
 
             lock (_root)
             {
-                node = _root.GetNode(parts);
+                node = _root.GetNode(parts, true);
                 return node.Subscribe(observer);
             }
         }

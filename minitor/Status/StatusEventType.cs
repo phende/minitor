@@ -1,8 +1,8 @@
-﻿namespace Minitor.Engine
+﻿namespace Minitor.Status
 {
     //--------------------------------------------------------------------------
     // All possible UpdateEvent types
-    public enum Update
+    public enum StatusEventType
     {
         ParentChanged = 1,
         StatusChanged,

@@ -57,7 +57,9 @@
 <body onload="initialize()">
     <div id="stateContainer" class="container my-5 text-center">
         <div id="stateLabel">Initializing...</div>
-        <div id="stateProgress" class="text-muted"></div>
+        <div>
+            <small id="stateProgress" class="text-muted"></small>
+        </div>
     </div>
     <div id="connectedContainer" class="container mt-3" style="display:none">
         <div id="pathsContainer"></div>
@@ -66,12 +68,13 @@
         <table id="monitorsTable" class="table"></table>
     </div>
     <div id="footer" class="text-muted">
+        <a href="/resource/usage.txt" class="text-dark">Help</a> -
+        <a href="https://github.com/phende/minitor" class="text-dark">GitHub</a> -
+        <span class="bg-success">&nbsp;</span> Completed
         <span class="bg-primary">&nbsp;</span> Unknown
         <span class="bg-warning">&nbsp;</span> Warning
         <span class="bg-danger">&nbsp;</span> Error
         <span class="bg-dark">&nbsp;</span> Dead
-        - <a href="/resource/usage.txt" class="text-dark">Help</a>
-        - <a href="https://github.com/phende/minitor" class="text-dark">GitHub</a>
     </div>
 </body>
 </html>

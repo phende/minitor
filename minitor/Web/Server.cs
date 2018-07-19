@@ -1,4 +1,5 @@
-﻿using Minitor.Engine;
+﻿using Minitor.Status;
+using Minitor.Utility;
 using System;
 using System.Net;
 using System.Net.WebSockets;
@@ -11,7 +12,7 @@ namespace Minitor.Web
     // Web server based on HttpListener
     class Server
     {
-        private Engine.Engine _manager;
+        private StatusManager _manager;
         private HttpListener _listener;
 
         //----------------------------------------------------------------------
@@ -20,7 +21,7 @@ namespace Minitor.Web
             if (!HttpListener.IsSupported)
                 throw new ApplicationException("HttpListener is not supported on this platform.");
 
-            _manager = new Engine.Engine();
+            _manager = new StatusManager();
         }
 
         //----------------------------------------------------------------------
@@ -59,7 +60,7 @@ namespace Minitor.Web
                         catch (Exception e)
                         {
                             if (!token.IsCancellationRequested)
-                                Log.Write(e);
+                                Logger.Write(e);
                             break;
                         }
                         var _ = Task.Factory.StartNew(async ()
@@ -82,7 +83,7 @@ namespace Minitor.Web
 
             isSocket = context.Request.IsWebSocketRequest;
 
-            Log.Debug($@"{reqnum}: Web{(isSocket ? "Socket" : "")} request from {
+            Logger.Debug($@"{reqnum}: Web{(isSocket ? "Socket" : "")} request from {
                 context.Request.RemoteEndPoint} for {context.Request.Url.ToString()}");
 
             try
@@ -96,8 +97,8 @@ namespace Minitor.Web
             {
                 if (!token.IsCancellationRequested)
                 {
-                    Log.Debug($"{reqnum}: Request failed");
-                    Log.Write(e);
+                    Logger.Debug($"{reqnum}: Request failed");
+                    Logger.Write(e);
                 }
                 Web.RespondError(reqnum, context.Response, HttpStatusCode.InternalServerError);
             }
@@ -156,13 +157,13 @@ namespace Minitor.Web
         // Kind of ugly, but indeed goto has some use sometimes
         private void HandleApiRequest(int reqnum, string path, HttpListenerRequest request, HttpListenerResponse response)
         {
-            Status sta;
+            StatusState sta;
             string str, s;
             TimeSpan ts;
 
             string monitor;
             string text;
-            Status? status;
+            StatusState? status;
             TimeSpan? validity;
             TimeSpan? expiration;
 
@@ -217,13 +218,13 @@ namespace Minitor.Web
             }
 
             if (!status.HasValue)
-                status = Status.Unknown;
+                status = StatusState.Normal;
 
             if (!validity.HasValue)
-                validity = Configuration.DefaultValidity;
+                validity = Configuration.StatusValidity;
 
             if (!expiration.HasValue)
-                expiration = Configuration.DefaultExpiration;
+                expiration = Configuration.StatusExpiration;
 
             if (_manager.Update(path, monitor, text, status.Value, validity.Value, expiration.Value))
             {
@@ -256,7 +257,7 @@ namespace Minitor.Web
                 return;
             }
 
-            Log.Debug($"{reqnum}: WebSocket client connected to {context.Request.Url.LocalPath} from {context.Request.RemoteEndPoint}");
+            Logger.Debug($"{reqnum}: WebSocket client connected to {context.Request.Url.LocalPath} from {context.Request.RemoteEndPoint}");
 
             using (token.Register(() => socket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Server terminating", CancellationToken.None)))
             {
@@ -272,7 +273,7 @@ namespace Minitor.Web
                 }
             }
 
-            Log.Debug($"{reqnum}: WebSocket client disconnected from {context.Request.RemoteEndPoint}");
+            Logger.Debug($"{reqnum}: WebSocket client disconnected from {context.Request.RemoteEndPoint}");
         }
     }
 }

@@ -1,7 +1,26 @@
-﻿using System;
+﻿using Minitor.Utility;
+using System;
 using System.IO;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
+
+//------------------------------------------------------------------------------
+// Edit version numbers here
+[assembly: AssemblyInformationalVersion("0.1")]
+[assembly: AssemblyVersion("0.1.0.*")]
+
+//------------------------------------------------------------------------------
+// No need to change below
+[assembly: AssemblyTitle("minitor")]
+[assembly: AssemblyProduct("minitor - simple mini monitor")]
+[assembly: AssemblyDescription("https://github.com/phende/minitor")]
+[assembly: AssemblyCopyright("MIT, minitor contributors")]
+#if DEBUG
+[assembly: AssemblyConfiguration("Debug")]
+#else
+[assembly: AssemblyConfiguration("Release")]
+#endif
 
 namespace Minitor
 {
@@ -11,9 +30,21 @@ namespace Minitor
         //----------------------------------------------------------------------
         static void Heading()
         {
-            Console.WriteLine("-----------------------------------");
-            Console.WriteLine("- Minitor = Simplest mini monitor -");
-            Console.WriteLine("-----------------------------------");
+            Assembly assembly;
+            string product, version, banner, config, dashes;
+
+            assembly = typeof(Program).Assembly;
+
+            product = assembly.GetCustomAttribute<AssemblyProductAttribute>().Product;
+            version = assembly.GetName().Version.ToString();
+            config = assembly.GetCustomAttribute<AssemblyConfigurationAttribute>().Configuration;
+
+            banner = $"| {product} (v{version} {config}) |";
+            dashes = new string('-', banner.Length);
+
+            Console.WriteLine(dashes);
+            Console.WriteLine(banner);
+            Console.WriteLine(dashes);
             Console.WriteLine();
         }
 
@@ -51,7 +82,7 @@ namespace Minitor
             };
 
             Console.CancelKeyPress += handler;
-            Console.WriteLine("Server started, press Ctrl+C to stop.");
+            Console.WriteLine($"Server started at {Configuration.Binding}, press Ctrl+C to stop.");
             task.Wait();
             Console.CancelKeyPress -= handler;
 
@@ -68,13 +99,6 @@ namespace Minitor
                 {
                     case "server": if (Server(args)) return; break;
                 }
-                if (System.Diagnostics.Debugger.IsAttached)
-                {
-                    Console.WriteLine();
-                    Console.WriteLine("Done, press Enter to quit.");
-                    Console.ReadLine();
-                }
-                return;
             }
             Usage();
         }

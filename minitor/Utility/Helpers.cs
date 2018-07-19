@@ -2,15 +2,15 @@
 using System.IO;
 using System.Collections.Generic;
 using System.Globalization;
-using Minitor.Engine;
+using Minitor.Status;
 
-namespace Minitor
+namespace Minitor.Utility
 {
     //--------------------------------------------------------------------------
     static class Helpers
     {
         private const string _resourcesPrefix = "Minitor.Resources.";
-        private static Dictionary<string, Status> _statuses;
+        private static Dictionary<string, StatusState> _statuses;
 
         //----------------------------------------------------------------------
         public static Stream GetResourceStream(string name)
@@ -54,13 +54,13 @@ namespace Minitor
         }
 
         //----------------------------------------------------------------------
-        public static bool TryParseStatus(string text, out Status status)
+        public static bool TryParseStatus(string text, out StatusState status)
         {
             if (_statuses == null)
             {
-                Dictionary<string, Status> statuses = new Dictionary<string, Status>();
-                foreach (string s in Enum.GetNames(typeof(Status)))
-                    statuses.Add(s.ToLowerInvariant(), (Status)Enum.Parse(typeof(Status), s));
+                Dictionary<string, StatusState> statuses = new Dictionary<string, StatusState>();
+                foreach (string s in Enum.GetNames(typeof(StatusState)))
+                    statuses.Add(s.ToLowerInvariant(), (StatusState)Enum.Parse(typeof(StatusState), s));
                 _statuses = statuses;
             }
 
@@ -74,7 +74,7 @@ namespace Minitor
                         return true;
                     }
             }
-            status = default(Status);
+            status = default(StatusState);
             return false;
         }
     }

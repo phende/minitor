@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Minitor.Engine.Internal
+namespace Minitor.Status.Internal
 {
     //--------------------------------------------------------------------------
     // State of one single monitor
@@ -17,7 +17,7 @@ namespace Minitor.Engine.Internal
         public readonly Node Parent;
         public readonly string Name;
 
-        public Status Status;
+        public StatusState Status;
         public string Text;
 
         public DateTime ValidUntil;

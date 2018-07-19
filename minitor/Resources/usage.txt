@@ -4,7 +4,7 @@ Launch server with:
   minitor server
 
 Navigate to http://localhost to observe status changes posted via API calls.
-Each monitor can have status Normal, Unknown, Warning, Error or Dead.
+Monitors can have status Normal, Completed, Unknown, Warning, Error or Dead.
 
 Note: web server runs on port 80, which requires administrative rights.
 
@@ -27,6 +27,7 @@ Using API:
   - v[alidity]
       How much time can pass without updates, before a given monitor
       automatically turns to 'Unknown' status. Default is 1h.
+	  Monitors with status Completed are not subject to this timeout.
 
   - e[xpiration]
       How much time can pass without updates, before a given monitor is

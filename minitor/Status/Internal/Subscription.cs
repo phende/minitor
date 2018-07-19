@@ -1,24 +1,25 @@
-﻿using System;
+﻿using Minitor.Utility;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace Minitor.Engine.Internal
+namespace Minitor.Status.Internal
 {
     //--------------------------------------------------------------------------
     // Queues events for a single subscription, delivers them asynchronously
     internal class Subscription : IDisposable
     {
         private Action _dispose;
-        private Func<Event, Task> _observer;
-        private Queue<Event> _queue;
+        private Func<StatusEvent, Task> _observer;
+        private Queue<StatusEvent> _queue;
         private bool _busy;
 
         //----------------------------------------------------------------------
-        public Subscription(Action dispose, Func<Event, Task> observer)
+        public Subscription(Action dispose, Func<StatusEvent, Task> observer)
         {
             _dispose = dispose;
             _observer = observer;
-            _queue = new Queue<Event>();
+            _queue = new Queue<StatusEvent>();
         }
 
         //----------------------------------------------------------------------
@@ -35,7 +36,7 @@ namespace Minitor.Engine.Internal
         }
 
         //----------------------------------------------------------------------
-        public void Send(Event evnt)
+        public void Send(StatusEvent evnt)
         {
             lock (this)
             {
@@ -53,8 +54,8 @@ namespace Minitor.Engine.Internal
         //----------------------------------------------------------------------
         private async Task Deliver()
         {
-            Func<Event, Task> observer;
-            Event evnt;
+            Func<StatusEvent, Task> observer;
+            StatusEvent evnt;
             bool failed = false;
 
             while (!failed)
@@ -76,7 +77,7 @@ namespace Minitor.Engine.Internal
                 }
                 catch(Exception e)
                 {
-                    Log.Debug(e);
+                    Logger.Debug(e);
                     failed = true;
                 }
             }

@@ -1,10 +1,11 @@
-﻿namespace Minitor.Engine
+﻿namespace Minitor.Status
 {
     //--------------------------------------------------------------------------
     // All possible status values of a Monitor, in priority order
-    public enum Status
+    public enum StatusState
     {
         Normal = 0,
+        Completed,
         Unknown,
         Warning,
         Error,

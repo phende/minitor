@@ -1,11 +1,11 @@
-﻿namespace Minitor.Engine
+﻿namespace Minitor.Status
 {
     //--------------------------------------------------------------------------
     // A change event a distributed to listeners
-    public class Event
+    public class StatusEvent
     {
         //----------------------------------------------------------------------
-        internal Event(Update type, int id, string name = null, string text = null, Status? status = null)
+        internal StatusEvent(StatusEventType type, int id, string name = null, string text = null, StatusState? status = null)
         {
             EventType = type;
             Id = id;
@@ -15,10 +15,10 @@
         }
 
         //----------------------------------------------------------------------
-        public readonly Update EventType;
+        public readonly StatusEventType EventType;
         public readonly int Id;
         public readonly string Name;
         public readonly string Text;
-        public readonly Status? Status;
+        public readonly StatusState? Status;
     }
 }

@@ -1,9 +1,9 @@
 ﻿using System;
 
-namespace Minitor
+namespace Minitor.Utility
 {
     //--------------------------------------------------------------------------
-    public static class Log
+    public static class Logger
     {
 #if DEBUG
         private static bool IsDebug => true;
