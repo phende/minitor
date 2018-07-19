@@ -55,18 +55,15 @@ Or, if the given number is negative, the monitor turns to `Dead` status:
 http://localhost/set/Some/Path?monitor=SRV&expiration=-30m
 ```
 
-This monitor will tuen blue after 30 minutes and will disappear after 2 hours, unless it is updated:
+`Expiration` and `Validity` can and often should be combined. This monitor will turn blue after 30 minutes and will disappear after 2 hours, unless it is updated:
 ```
-http://localhost/set/Some/Path?monitor=SRV&vam=30m&exp=2h
+http://localhost/set/Some/Path?monitor=SRV&val=30m&exp=2h
 ```
 
 To explicitely delete a monitor, use a zero expiration:
 ```
 http://localhost/set/Some/Path?m=SRV&e=0
 ```
-
-`Expiration` and `Validity` can and often should be combined.
-
 
 ## Text
 

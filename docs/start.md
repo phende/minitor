@@ -9,6 +9,8 @@ Please make sure you have installed the required components.
 - On Linux and macOs, you will need [.NET Core 2.0](https://www.microsoft.com/net) or later
 - Windows 8/2012 and later already come with the required .NET Framework version
 
+Internet access is required for the clients as the web pages reference [Bootstrap](https://getbootstrap.com) CDN.
+
 You may also need root/administrator priviledges, see below for HTTP port security restrictions..
 
 # Starting the server
