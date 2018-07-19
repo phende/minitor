@@ -17,9 +17,9 @@ Minitor is a work in progress, issues and feedback are welcome and appreciated.
 ---
 
 ### Find out more
-- [Quick start](tree/master/docs/start.md)
-- [Use cases](tree/master/docs/usage.md)
-- [Parameters reference](tree/master/docs/reference.md)
-- [Examples](tree/master/docs/examples.md)
-- [Code walkthrough](tree/master/docs/walkthrough.md)
-- [Next steps](tree/master/docs/next.md)
+- [Quick start](docs/start.md)
+- [Use cases](docs/usage.md)
+- [Parameters reference](docs/reference.md)
+- [Examples](docs/examples.md)
+- [Code walkthrough](docs/walkthrough.md)
+- [Next steps](docs/next.md)

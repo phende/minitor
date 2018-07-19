@@ -35,7 +35,7 @@ Navigate to http://localhost for a Release build, or http://localhost:12345 for 
 
 If all is well, you will see the following page:
 
-![home page](assets/home-empty.png)
+![home page empty](assets/home-empty.png)
 
 In case of troubles, you may want to check your firewall settings or check if another web server is already running.
 
@@ -66,7 +66,7 @@ PowerShell -c "iwr 'http://localhost/set?monitor=Hello&text=There&status=warning
 
 We sent a request to minitor to create or update a monitor named `Hello` with descriptive text `There` and status `warning`. This monitor is now visible in your browser and in any other connected client:
 
-[web page screenshot]
+![home page with warning](assets/home-warning.png)
 
 Try replacing the `text` parameter, or changing `status` to either `normal` or `error`.
 
