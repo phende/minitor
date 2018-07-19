@@ -2,12 +2,12 @@
 
 Although it is simple, or even simplistic, Minitor can be another swiss knife on your toolbelt.
 
-It is not built to gather detailed information about every thing but is very capable for easily building synthetic view
+It is not built to gather detailed information about everything but is very capable for easily building synthetic views
 of multiple systems and operations.
 
 ## Dashboard
 
-Minitor makes an easy to build heartbeat dashboard.
+Minitor makes an easy to build heartbeat dashboard, using `Validity` and `Expiration` parameters.
 
 With minimal effort, it can reveal degraded or error status in many component and many system.
 
@@ -47,7 +47,7 @@ Persistence might be added in the future.
 
 ## Alerting
 
-Minitor does not send alerts, and does not even know about metrics, thresholds, schedules, historical data.
+Minitor does not send alerts, and does not even know about metrics, thresholds, schedules, historical data and such.
 
 It will show you the state of your environment and may help uncover issues, but it will not tell you anything by itself.
 

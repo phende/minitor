@@ -1,6 +1,6 @@
 # URL Parameters
 
-For the general URL format, see the [quick start](start.md).
+For the general URL format, please see the [quick start](start.md).
 
 All parameter names and status values can be abbreviated.
 
@@ -18,7 +18,7 @@ The status of every monitor can be one of:
 | Value | Color | Meaning |
 | --- | --- | --- |
 | Normal | White | This is the default value and it has no other meaning than showing that everything is right and life is beautiful. |
-| Completed | Green | `Completed` is intended to be used to signal the successful end of a lengthy operation. As such, it is NOT subject to `Validity` timeout.<br />To show success for other kind of operations, use `Normal`. |
+| Completed | Green | `Completed` is intended to be used to signal the successful end of a lengthy operation. As such, it is NOT subject to `Validity` timeout. To show success for other kind of operations, use `Normal`. |
 | Unknown | Blue | Not commonly set manually, it can be activated automatically using `Validity` parameter. |
 | Warning | Yellow | Indicates a minor problem. |
 | Error | Red | Shows a more serious problem. |
@@ -32,7 +32,7 @@ In other words, `Dead` takes priority over `Error`, which takes priority over `W
 
 This parameters says for how long a status update is valid.
 
-After that time has ellapsed, the monitor automatically turns to `Unknown` status.
+After that time has ellapsed, the monitor automatically turns to `Unknown` status unless another update happens in between.
 
 It is an integer number followed by a unit letter:
 - `s` for seconds
@@ -41,7 +41,7 @@ It is an integer number followed by a unit letter:
 - `d` for days
 - `w` for weeks
 
-For instance:
+For instance, this monitor will turn to `Unknown` after 30 minutes:
 ```
 http://localhost/set/Some/Path?monitor=SRV&validity=30m
 ```
@@ -51,15 +51,18 @@ http://localhost/set/Some/Path?monitor=SRV&validity=30m
 Similar to `Validity`, but when the specified time has ellapsed the monitor is removed.
 
 Or, if the given number is negative, the monitor turns to `Dead` status:
-
 ```
 http://localhost/set/Some/Path?monitor=SRV&expiration=-30m
 ```
 
-To explicitely delete a monitor, use a zero expiration:
-
+This monitor will tuen blue after 30 minutes and will disappear after 2 hours, unless it is updated:
 ```
-http://localhost/set/Some/Path?monitor=SRV&expiration=0
+http://localhost/set/Some/Path?monitor=SRV&vam=30m&exp=2h
+```
+
+To explicitely delete a monitor, use a zero expiration:
+```
+http://localhost/set/Some/Path?m=SRV&e=0
 ```
 
 `Expiration` and `Validity` can and often should be combined.
