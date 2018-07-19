@@ -25,7 +25,7 @@ Administrator priviledges are required on Windows to run minitor Release builds 
 
 The Debug build defaults to port 12345 to ease development and debugging, you may wish to use that to test as well.
 
-[console screenshot]
+![server console](assets/server-console.png)
 
 # Opening a client
 
