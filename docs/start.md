@@ -1,3 +1,5 @@
+# Quick Start
+
 This page walks through a test run of minitor, and shortly describes how it works.
 
 # Requirements
@@ -46,14 +48,14 @@ depending on which build you are using.
 
 Open a command prompt or terminal.
 
-### Linux/macOS
+## Linux/macOS
 
 We will use `curl`:
 ```
 curl "http://localhost/set?monitor=Hello&text=There&status=warning"
 ```
 
-### Windows
+## Windows
 
 Using `PowerShell`:
 ```
@@ -62,7 +64,7 @@ PowerShell -c "iwr 'http://localhost/set?monitor=Hello&text=There&status=warning
 `iwr` is a shortcut or alias for `Invoke-WebRequest`.
 
 
-### What happened
+## What happened
 
 We sent a request to minitor to create or update a monitor named `Hello` with descriptive text `There` and status `warning`. This monitor is now visible in your browser and in any other connected client:
 
@@ -74,24 +76,25 @@ Note that you could use these status update URLs directly in your browser.
 
 # Advanced status update
 
-### Hierarchy
+## Hierarchy
 
 Minitor is not a single page. Try using sub URLs like:
 ```
 http://localhost/set/Production/Servers/SRV0001?monitor=Disk%20free&text=120.5GB
+http://localhost/set/Production/Servers/SRV0001?monitor=Disk%20IO&text=80%&status=error
 ```
 Notice how navigation dynamically appears on pages and how status of child pages is reflected in navigation UI.
 
-### Status values
+## Status values
 
 There are more possible values for `status`, see [parameters reference](reference.md).
 
-### Timeouts
+## Timeouts
 
 You may notice that your updates turn blue after a while, and disappear after even longer.
 Minitor uses some default timeouts that can be configured in each request, see [parameters reference](reference.md).
 
-### Complex text
+## Complex text
 
 If your text may contain spaces or non-alphanumeric characters, you will need to URLencode it.
 This is achieved as such:
@@ -106,7 +109,7 @@ Notice the use of single and double quotes for PowerShell.
 
 `irm` is a shortcut or alias for `Invoke-RestMethod`, which might be easier to use than `Invoke-WebRequest` in some scripts.
 
-### Abbreviations
+## Abbreviations
 
 All parameters and status values can be abbreviated down to their shortest form. So:
 ```
@@ -120,6 +123,13 @@ or even:
 ```
 curl "http://localhost/set?m=Hello&t=There&s=w"
 ```
+
+# Background service
+
+Minitor can be started as background task using common tools.
+
+On Windows, it is pretty easy to start it under SYSTEM identity using the Task Scheduler, SRVANY or other service management tools.
+
 # Next
 
 Minitor is a specialized tool and has many limitations, please have a look at [use cases](usage.md) to make sure it suits your needs.

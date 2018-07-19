@@ -1,3 +1,5 @@
-`powershell -c "iwr 'http://localhost/set/Exchange?mon=SRV1&st=w'"`
+# Processes list using PowerShell
 
-`curl`
+[processes.ps1](../examples/processes.ps1)
+
+This script shows local running process in Minitor, with a status level linked to the number of handles per process.
