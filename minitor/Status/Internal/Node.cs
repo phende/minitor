@@ -34,6 +34,7 @@ namespace Minitor.Status.Internal
             _id = ++_lastid;
             _parent = parent;
             _name = name;
+            _status = StatusState.Normal;
 
             if (_parent == null)
                 _path = string.Empty;
@@ -65,7 +66,7 @@ namespace Minitor.Status.Internal
 
                 node = new Node(this, key);
                 _children.Add(key, node);
-                SendEvent(StatusEventType.ChildAdded, node._id, node._name, node._path, StatusState.Unknown);
+                SendEvent(StatusEventType.ChildAdded, node._id, node._name, node._path, node._status);
             }
             return node.GetNode(path, index + 1, create);
         }

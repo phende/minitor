@@ -8,12 +8,12 @@ var pathClass = {
     "Dead": "text-dark font-weight-bold"
 };
 var childClass = {
-    "Normal": "btn btn-light btn-sm text-muted child-link",
-    "Completed": "btn btn-success btn-sm text-light child-link",
-    "Unknown": "btn btn-primary btn-sm text-light child-link",
-    "Warning": "btn btn-warning btn-sm child child-link",
-    "Error": "btn btn-danger btn-sm text-light child-link",
-    "Dead": "btn btn-dark btn-sm text-light child-link"
+    "Normal": "btn btn-light btn-sm text-muted child-link mb-1",
+    "Completed": "btn btn-success btn-sm text-light child-link mb-1",
+    "Unknown": "btn btn-primary btn-sm text-light child-link mb-1",
+    "Warning": "btn btn-warning btn-sm child child-link mb-1",
+    "Error": "btn btn-danger btn-sm text-light child-link mb-1",
+    "Dead": "btn btn-dark btn-sm text-light child-link mb-1"
 };
 var monitorClass = {
     "Normal": "bg-light text-muted",

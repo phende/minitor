@@ -2,7 +2,7 @@
 # Shows a list of running process in minitor, with status
 # based on process' handles count:
 #
-# - error (red)      if more than 1000 
+# - error (red)      if more than 1000
 # - warning (yellow) if more than 300
 # - normal (white)   otherwise
 #
@@ -10,15 +10,15 @@
 
 # Set host and port, Debug builds run on port 12345
 # while Release builds run on default port 80
-
-#$base = "http://localhost"
 $base = "http://localhost:12345"
+#$base = "http://localhost"
 
-# Configure timeouts and tree location to 'Processes'
-$base = $base + "/set/Processes?val=30s&exp=2m"
+# Set tree location to 'Processes'
+$base = $base + "/set/Processes?"
 
-# Processes will turn to unknown status (blue) if not refreshed
+# Dead processes will turn to unknown status (blue)
 # within 30 seconds, then will disappear after 2 minutes
+$base = $base + "val=30s&exp=2m"
 
 # Loop until interrupted
 "Sending processes, press Ctrl+C to stop."
