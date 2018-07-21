@@ -14,7 +14,15 @@ Patforms:
 
 Minitor is a work in progress, issues and feedback are welcome and appreciated.
 
+---
+
+### Sample dashboard
+
+Status information is organized hierarchically:
+
 ![exchange dashboard](docs/assets/screenshot-exchange.png)
+
+Following a path reveals more details:
 
 ![exchange queues](docs/assets/screenshot-queues.png)
 
