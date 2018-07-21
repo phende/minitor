@@ -1,46 +1,60 @@
 #------------------------------------------------------------
 # Shows a list of running process in minitor, with status
-# based on process' handles count:
+# based on process' working set memory
 #
-# - error (red)      if more than 1000
-# - warning (yellow) if more than 300
+# - error (red)      if more than 200MB
+# - warning (yellow) if more than 100MB
 # - normal (white)   otherwise
 #
 #---------------------------------------------------
 
-# Set host and port, Debug builds run on port 12345
-# while Release builds run on default port 80
-$base = "http://localhost:12345"
-#$base = "http://localhost"
+# Set URL, Debug builds run on port 12345 while Release builds run on default port 80
+$url = "http://localhost:12345/set/Processes"
+#url = "http://localhost/set/Processes"
 
-# Set tree location to 'Processes'
-$base = $base + "/set/Processes?"
+#---------------------------------------------------
+# Utility function
+function Get-DisplaySize($bytes)
+{
+    $sizes = "B,KiB,MiB,GiB,TiB,PiB,EiB,ZiB" -split ","
 
-# Dead processes will turn to unknown status (blue)
-# within 30 seconds, then will disappear after 2 minutes
-$base = $base + "val=30s&exp=2m"
+    $i = 0
+    while (($bytes -ge 1024.0) -and ($i -lt $sizes.Count)) { $bytes /= 1024.0; $i++; }
 
+    $n = 2
+    if ($i -eq 0) { $n = 0 }
+    "{0:N$($n)} {1}" -f $bytes, $sizes[$i]
+}
+
+#---------------------------------------------------
 # Loop until interrupted
 "Sending processes, press Ctrl+C to stop."
 while($true)
 {
     foreach($proc in Get-Process)
     {
-        # Build URL with monitor name as process name and id
-        $url = $base + "&mon=$($proc.Name):$($proc.Id)&status="
+        $body = @{}
 
-        # Add status based on handles count
-        if ($proc.Handles -gt 1000)
-            { $url = $url + "error&text=$($proc.Handles)%20handles%20is%20too%20much" }
+        # Monitor name based on process name and id
+        $body.monitor = "$($proc.Name):$($proc.Id)";
 
-        elseif ($proc.Handles -gt 300)
-            { $url = $url + "warning" }
+        # Dead processes will turn to unknown status (blue)
+        # within 30 seconds, then will disappear after 2 minutes
+        $body.validity = "30s";
+        $body.expiration = "2m";
+
+        # Add status based on working set memory size
+        if ($proc.WorkingSet -ge 200MB)
+            { $body.status = "error"; $body.text = "$(Get-DisplaySize $proc.WorkingSet) is too much" }
+
+        elseif ($proc.WorkingSet -ge 100MB)
+            { $body.status = "warning"; $body.text = "$(Get-DisplaySize $proc.WorkingSet) is a lot" }
 
         else
-            { $url = $url + "normal" }
+            { $body.status = "normal"; $body.text = Get-DisplaySize $proc.WorkingSet }
 
-        # Do a simple GET on the built URL, ignore result
-        $null = invoke-webrequest $url
+        # Do a simple GET on the built URL, ignore answer
+        $null = invoke-restmethod $url -body $body
     }
 
     # Rinse and repeat

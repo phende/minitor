@@ -1,5 +1,5 @@
 # minitor
-Minitor is a lightweight status dashboard for distributed systems.
+Minitor is a lightweight status dashboard server for distributed systems.
 
 It receives updates from other systems or components, and broadcasts status changes to viewing web browsers in real time.
 

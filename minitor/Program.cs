@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 //------------------------------------------------------------------------------
 // No need to change below
 [assembly: AssemblyTitle("minitor")]
-[assembly: AssemblyProduct("minitor - simple mini monitor")]
+[assembly: AssemblyProduct("minitor - simple status dashboard server")]
 [assembly: AssemblyDescription("https://github.com/phende/minitor")]
 [assembly: AssemblyCopyright("MIT, minitor contributors")]
 #if DEBUG

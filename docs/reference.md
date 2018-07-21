@@ -30,7 +30,7 @@ In other words, `Dead` takes priority over `Error`, which takes priority over `W
 
 ## Validity
 
-This parameters says for how long a status update is valid.
+This parameters says for how long a status update is valid, and defaults to 60 minutes.
 
 After that time has ellapsed, the monitor automatically turns to `Unknown` status unless another update happens in between.
 
@@ -48,7 +48,7 @@ http://localhost/set/Some/Path?monitor=SRV&validity=30m
 
 ## Expiration
 
-Similar to `Validity`, but when the specified time has ellapsed the monitor is removed.
+Similar to `Validity`, but when the specified time has ellapsed the monitor is removed. The default is 2 days.
 
 Or, if the given number is negative, the monitor turns to `Dead` status:
 ```
