@@ -14,6 +14,10 @@ Patforms:
 
 Minitor is a work in progress, issues and feedback are welcome and appreciated.
 
+![exchange dashboard](docs/assets/screenshot-exchange.png)
+
+![exchange queues](docs/assets/screenshot-queues.png)
+
 ---
 
 ### Find out more
