@@ -6,6 +6,7 @@ namespace Minitor.Utility
 {
     //--------------------------------------------------------------------------
     // Simple and ugly way to construct JSON in a bytes array
+    // Should rather use https://github.com/zanders3/json or DataContractJsonSerializer instead
     static class JsonBuffer
     {
         //----------------------------------------------------------------------
