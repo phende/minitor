@@ -11,7 +11,7 @@ Please make sure you have installed the required components.
 
 Internet access is required for the clients as the web pages reference [Bootstrap](https://getbootstrap.com) CDN.
 
-You may also need root/administrator priviledges, see below for HTTP port security restrictions..
+You may also need root/administrator priviledges, see below for HTTP port security restrictions.
 
 # Starting the server
 
@@ -22,10 +22,10 @@ Minitor is a single file deployment that can be copied to your location of choic
 
 Then open a command prompt or terminal and make sure your current directory is the location of `exe` or `dll` file.
 
-- On Linux and macOS run command `dotnet minitor.dll server`
-- On Windows run `minitor server`
+- On Linux and macOS run command `dotnet minitor.dll server`, or `sudo dotnet minitor.dll server` if needed
+- On Windows run `minitor server`, in an elevated prompt if needed
 
-Administrator priviledges are required on Windows to run minitor Release builds as they use default HTTP port 80 which is protected, if you are not admin (or do not run from an elevated command prompt) you will see `Access denied` errors.
+Administrator priviledges are required on Windows and macOS to run minitor Release builds as they use default HTTP port 80 which is protected, if you are not admin (or do not run from an elevated command prompt) you will see `Access denied` errors.
 
 The Debug build defaults to port 12345 to ease development and debugging, you may wish to use that to test as well.
 
