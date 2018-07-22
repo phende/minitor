@@ -6,6 +6,8 @@
     <RootNamespace>Minitor</RootNamespace>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <Deterministic>false</Deterministic>
+    <ServerGarbageCollection>true</ServerGarbageCollection>
+    <ConcurrentGarbageCollection>true</ConcurrentGarbageCollection>
   </PropertyGroup>
 
   <ItemGroup>
