@@ -5,10 +5,10 @@
     public enum StatusState
     {
         Normal = 0,
-        Completed,
+        Success,
         Unknown,
         Warning,
         Error,
-        Dead,
+        Critical,
     }
 }

@@ -4,7 +4,7 @@ Launch server with:
   minitor server
 
 Navigate to http://localhost to observe status changes posted via API calls.
-Monitors can have status Normal, Completed, Unknown, Warning, Error or Dead.
+Monitors can have status Normal, Success, Unknown, Warning, Error or Critical.
 
 Note: web server runs on port 80, which requires administrative rights.
 
@@ -19,7 +19,7 @@ Using API:
       Mandatory monitor name, must be unique within each path.
 
   - s[tatus]
-      Optional status, default to 'Normal'.
+      Optional status, defaults to 'Normal'.
 
   - t[ext]
       Optional additional status text, defaults to empty.
@@ -33,13 +33,14 @@ Using API:
       How much time can pass without updates, before a given monitor is
       automatically removed from status lists. Default is 48h.
 
+  - h[earthbeat]
+      When the monitor expires, it will be turned to "Critical' status
+      instead of being removed. No value needed.
+
   All parameters can be abbreviated, as can all status values.
 
   Valid units for 'validity' and 'expiration' are 's', 'm', 'h' and 'd'
   respectively for seconds, minutes (default), hours and days.
-
-  If a negative 'expiration' is provided, after the set delay the entry
-  will turn to 'Dead' status instead of being removed.
 
 PowerShell examples:
 

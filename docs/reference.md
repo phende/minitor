@@ -18,15 +18,15 @@ The status of every monitor can be one of:
 | Value | Color | Meaning |
 | --- | --- | --- |
 | Normal | White | This is the default value and it has no other meaning than showing that everything is right and life is beautiful. |
-| Completed | Green | `Completed` is intended to be used to signal the successful end of a lengthy operation. As such, it is NOT subject to `Validity` timeout. To show success for other kind of operations, use `Normal`. |
+| Success | Green | `Success` is intended to be used to signal the successful end of a lengthy operation. To show success for other kind of operations, use `Normal`. |
 | Unknown | Blue | Not commonly set manually, it can be activated automatically using `Validity` parameter. |
 | Warning | Yellow | Indicates a minor problem. |
 | Error | Red | Shows a more serious problem. |
-| Dead | Black | Also not commonly set manually, but can be set automatically using `Expiration` parameter. |
+| Critical | Black | Also not commonly set manually, but can be set automatically using `Heartbeat` parameter. |
 
-This table is sorted by priority order, for instance any path with at least a monitor has `Error` status will show as error unless another monitor has `Dead` status.
+This table is sorted by priority order, for instance any path with at least a monitor has `Error` status will show as error unless another monitor has `Critical` status.
 
-In other words, `Dead` takes priority over `Error`, which takes priority over `Warning` and so on...
+In other words, `Critical` takes priority over `Error`, which takes priority over `Warning` and so on...
 
 ## Validity
 
@@ -64,6 +64,10 @@ To explicitely delete a monitor, use a zero expiration:
 ```
 http://localhost/set/Some/Path?m=SRV&e=0
 ```
+
+## Heartbeat
+
+If `Heartbeat` is specified (empty value, or 'yes', or 'true') an expired monitor will turn to `Critical` instead of being removed.
 
 ## Text
 

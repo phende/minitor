@@ -7,7 +7,7 @@ of multiple systems and operations.
 
 ## Dashboard
 
-Minitor makes an easy to build heartbeat dashboard, using `Validity` and `Expiration` parameters.
+Minitor makes an easy to build heartbeat dashboard, using `Validity` and `Expiration` parameters. `Heartbeat` can also be added to change expiration behavior.
 
 With minimal effort, it can reveal degraded or error status in many component and many system.
 

@@ -1,27 +1,27 @@
 ﻿// Style classes per status
 var pathClass = {
     "Normal": "text-muted",
-    "Completed": "text-success",
+    "Success": "text-success",
     "Unknown": "text-primary font-weight-bold",
     "Warning": "text-warning font-weight-bold",
     "Error": "text-danger font-weight-bold",
-    "Dead": "text-dark font-weight-bold"
+    "Critical": "text-dark font-weight-bold"
 };
 var childClass = {
     "Normal": "btn btn-light btn-sm text-muted child-link mb-1",
-    "Completed": "btn btn-success btn-sm text-light child-link mb-1",
+    "Success": "btn btn-success btn-sm text-light child-link mb-1",
     "Unknown": "btn btn-primary btn-sm text-light child-link mb-1",
     "Warning": "btn btn-warning btn-sm child child-link mb-1",
     "Error": "btn btn-danger btn-sm text-light child-link mb-1",
-    "Dead": "btn btn-dark btn-sm text-light child-link mb-1"
+    "Critical": "btn btn-dark btn-sm text-light child-link mb-1"
 };
 var monitorClass = {
     "Normal": "bg-light text-muted",
-    "Completed": "bg-success text-light",
+    "Success": "bg-success text-light",
     "Unknown": "bg-primary text-light",
     "Warning": "bg-warning",
     "Error": "bg-danger text-light",
-    "Dead": "bg-dark text-light"
+    "Critical": "bg-dark text-light"
 };
 
 // Constants

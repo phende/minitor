@@ -12,7 +12,7 @@ namespace Minitor.Status
     {
         private static char[] _separators = new char[] { '/' };
 
-        private Node _root = new Node();
+        private PathNode _root = new PathNode();
         private Timer _timer;
 
         //----------------------------------------------------------------------
@@ -39,12 +39,12 @@ namespace Minitor.Status
         }
 
         //----------------------------------------------------------------------
-        public bool Update(string path, string name, string text, StatusState status, TimeSpan validity, TimeSpan expiration)
+        public bool UpdateMonitor(string path, string name, string text, StatusState status, TimeSpan validity, TimeSpan expiration, bool beat)
         {
             string[] parts;
-            Node node;
+            PathNode node;
 
-            if (status < StatusState.Normal || status > StatusState.Dead)
+            if (status < StatusState.Normal || status > StatusState.Critical)
                 return false;
 
             if (name == null)
@@ -56,16 +56,16 @@ namespace Minitor.Status
             lock (_root)
             {
                 node = _root.GetNode(parts, true);
-                node.UpdateMonitor(name, text, status, validity, expiration);
+                node.UpdateMonitor(name, text, status, validity, expiration, beat);
             }
             return true;
         }
 
         //----------------------------------------------------------------------
-        public IDisposable Subscribe(string path, Func<StatusEvent, Task> observer)
+        public IDisposable SubscribePath(string path, Func<StatusEvent, Task> observer)
         {
             string[] parts;
-            Node node;
+            PathNode node;
 
             if (observer == null)
                 return null;
@@ -76,7 +76,7 @@ namespace Minitor.Status
             lock (_root)
             {
                 node = _root.GetNode(parts, true);
-                return node.Subscribe(observer);
+                return node.SubscribePath(observer);
             }
         }
 

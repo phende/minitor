@@ -19,12 +19,13 @@ namespace Minitor.Utility
         }
 
         //----------------------------------------------------------------------
-        public static bool TryParseTimeSpan(string text, out TimeSpan timeSpan)
+        public static bool TryParseTimeSpan(string text, ref TimeSpan? timeSpan)
         {
             char ch;
             int multiplier;
 
-            timeSpan = default(TimeSpan);
+            if (timeSpan.HasValue)
+                return false;
 
             if (string.IsNullOrWhiteSpace(text))
                 return false;
@@ -49,12 +50,15 @@ namespace Minitor.Utility
             if (!int.TryParse(text, NumberStyles.Integer, CultureInfo.InvariantCulture, out int num))
                 return false;
 
+            if (num < 0)
+                return false;
+
             timeSpan = TimeSpan.FromSeconds(num * multiplier);
             return true;
         }
 
         //----------------------------------------------------------------------
-        public static bool TryParseStatus(string text, out StatusState status)
+        public static bool TryParseStatus(string text, ref StatusState? status)
         {
             if (_statuses == null)
             {
@@ -64,7 +68,7 @@ namespace Minitor.Utility
                 _statuses = statuses;
             }
 
-            if (!string.IsNullOrWhiteSpace(text))
+            if (status.HasValue == false && string.IsNullOrWhiteSpace(text) == false)
             {
                 text = text.ToLowerInvariant();
                 foreach (string s in _statuses.Keys)
@@ -74,7 +78,34 @@ namespace Minitor.Utility
                         return true;
                     }
             }
-            status = default(StatusState);
+            return false;
+        }
+
+        //----------------------------------------------------------------------
+        public static bool TryParseHeartBeat(string text, ref bool? beat)
+        {
+            if (beat.HasValue)
+                return false;
+
+            if (string.IsNullOrWhiteSpace(text))
+            {
+                beat = true;
+                return true;
+            }
+
+            text = text.ToLowerInvariant();
+
+            if (text == "0" || "false".StartsWith(text) || "no".StartsWith(text))
+            {
+                beat = false;
+                return true;
+            }
+            else if (text == "1" || "true".StartsWith(text) || "yes".StartsWith(text))
+            {
+                beat = true;
+                return true;
+            }
+
             return false;
         }
     }

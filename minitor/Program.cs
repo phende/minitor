@@ -7,8 +7,8 @@ using System.Threading.Tasks;
 
 //------------------------------------------------------------------------------
 // Edit version numbers here
-[assembly: AssemblyInformationalVersion("0.1")]
-[assembly: AssemblyVersion("0.1.0.0")]
+[assembly: AssemblyInformationalVersion("0.1.1")]
+[assembly: AssemblyVersion("0.1.1.0")]
 
 //------------------------------------------------------------------------------
 [assembly: AssemblyTitle("minitor")]

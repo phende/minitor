@@ -26,7 +26,7 @@
 - REST/JSON interface to retrieve status lists from PowerShell and REST tools
 - Self installing/deinstalling as a service on Windows
 - Logging module, showing the last n received log entries
-- Pin board/Chat module, for changes and issues in progress
-- Separate module version for hosting in a web server (ASP.Net Core, Kestrel, IIS)
+- Pin board/Chat module, for changes and issues in progress (requires persistence)
+- Separate module version for hosting in a web server (ASP.Net Core, Kestrel, IIS ?)
 
 And your ideas here...

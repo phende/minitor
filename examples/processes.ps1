@@ -16,7 +16,7 @@ $url = "http://localhost:12345/set/Processes"
 # Utility function
 function Get-DisplaySize($bytes)
 {
-    $sizes = "B,KiB,MiB,GiB,TiB,PiB,EiB,ZiB" -split ","
+    $sizes = ("B","KiB","MiB","GiB","TiB","PiB","EiB","ZiB")
 
     $i = 0
     while (($bytes -ge 1024.0) -and ($i -lt $sizes.Count)) { $bytes /= 1024.0; $i++; }

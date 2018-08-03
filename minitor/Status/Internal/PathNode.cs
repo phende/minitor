@@ -1,5 +1,6 @@
 ﻿using Minitor.Utility;
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -8,30 +9,28 @@ namespace Minitor.Status.Internal
 {
     //--------------------------------------------------------------------------
     // A tree node, has a parent and children nodes, holds Monitor objects
-    internal class Node
+    internal class PathNode
     {
         private static int _lastid;
 
         private readonly int _id;
-        private readonly Node _parent;
+        private readonly PathNode _parent;
         private readonly string _name;
         private readonly string _path;
 
-        private readonly Dictionary<string, Node> _children;
+        private readonly Dictionary<string, PathNode> _children;
         private readonly Dictionary<string, Monitor> _monitors;
+        private readonly SubscriptionManager<StatusEvent> _subscriptions;
 
-        private readonly ConcurrentDictionary<int, Subscription> _subscriptions;
-
-        private int _subnum;
         private StatusState _status;
 
         //----------------------------------------------------------------------
-        public Node() : this(null, null) { }
+        public PathNode() : this(null, null) { }
 
         //----------------------------------------------------------------------
-        private Node(Node parent, string name)
+        private PathNode(PathNode parent, string name)
         {
-            _id = ++_lastid;
+            _id = Interlocked.Increment(ref _lastid);
             _parent = parent;
             _name = name;
             _status = StatusState.Normal;
@@ -41,20 +40,20 @@ namespace Minitor.Status.Internal
             else if (_parent._path == string.Empty)
                 _path = _name;
             else
-                _path = _parent._path + "/" + _name;
+                _path = string.Concat(_parent._path, "/", _name);
 
-            _children = new Dictionary<string, Node>(StringComparer.InvariantCultureIgnoreCase);
+            _children = new Dictionary<string, PathNode>(StringComparer.InvariantCultureIgnoreCase);
             _monitors = new Dictionary<string, Monitor>(StringComparer.InvariantCultureIgnoreCase);
-            _subscriptions = new ConcurrentDictionary<int, Subscription>();
+            _subscriptions = new SubscriptionManager<StatusEvent>();
         }
 
         //----------------------------------------------------------------------
         private bool IsEmpty { get => _children.Count == 0 && _monitors.Count == 0 && _subscriptions.Count == 0; }
 
         //----------------------------------------------------------------------
-        private Node GetNode(string[] path, int index, bool create)
+        private PathNode GetNode(string[] path, int index, bool create)
         {
-            Node node;
+            PathNode node;
             string key;
 
             if (index >= path.Length) return this;
@@ -64,23 +63,22 @@ namespace Minitor.Status.Internal
             {
                 if (!create) return null;
 
-                node = new Node(this, key);
+                node = new PathNode(this, key);
                 _children.Add(key, node);
                 SendEvent(StatusEventType.ChildAdded, node._id, node._name, node._path, node._status);
             }
             return node.GetNode(path, index + 1, create);
         }
-        public Node GetNode(string[] path, bool create) => GetNode(path, 0, create);
+        public PathNode GetNode(string[] path, bool create) => GetNode(path, 0, create);
 
         //----------------------------------------------------------------------
         private void RefreshStatus()
         {
-            StatusEvent evnt;
             StatusState status;
 
             status = StatusState.Normal;
 
-            foreach (Node node in _children.Values)
+            foreach (PathNode node in _children.Values)
                 if (node._status > status)
                     status = node._status;
 
@@ -95,13 +93,12 @@ namespace Minitor.Status.Internal
                 _parent?.SendEvent(StatusEventType.ChildChanged, _id, _name, _path, _status);
                 _parent?.RefreshStatus();
 
-                evnt = new StatusEvent(StatusEventType.ParentChanged, _id, _name, _path, _status);
-                CascadeEvent(evnt);
+                CascadeEvent(new StatusEvent(StatusEventType.ParentChanged, _id, _name, _path, _status));
             }
         }
 
         //----------------------------------------------------------------------
-        public void UpdateMonitor(string monitor, string text, StatusState status, TimeSpan validity, TimeSpan expiration)
+        public void UpdateMonitor(string monitor, string text, StatusState status, TimeSpan validity, TimeSpan expiration, bool beat)
         {
             StatusEventType evnt;
             DateTime utc;
@@ -115,8 +112,8 @@ namespace Minitor.Status.Internal
                 if (status == mon.Status && ((text == null && mon.Text == null) || (text != null && mon.Text != null && text != mon.Text)))
                 {
                     mon.ValidUntil = utc + validity;
-                    mon.ExpireAfter = utc + expiration.Duration();
-                    mon.KeepExpired = expiration.Ticks < 0;
+                    mon.ExpireAfter = utc + expiration;
+                    mon.KeepExpired = beat;
                     return;
                 }
                 evnt = StatusEventType.MonitorChanged;
@@ -131,71 +128,60 @@ namespace Minitor.Status.Internal
             mon.Text = text;
             mon.Status = status;
             mon.ValidUntil = utc + validity;
-            mon.ExpireAfter = utc + expiration.Duration();
-            mon.KeepExpired = expiration.Ticks < 0;
+            mon.ExpireAfter = utc + expiration;
+            mon.KeepExpired = beat;
 
             SendEvent(evnt, mon.Id, mon.Name, mon.Text, mon.Status);
             RefreshStatus();
         }
 
         //----------------------------------------------------------------------
-        private IEnumerable<Node> PathFromRoot()
+        private IEnumerable<PathNode> PathFromRoot()
         {
-            List<Node> list;
+            List<PathNode> list;
 
-            list = new List<Node>();
-            for (Node node = _parent; node != null; node = node._parent)
+            list = new List<PathNode>();
+            for (PathNode node = _parent; node != null; node = node._parent)
                 list.Add(node);
             for (int i = list.Count - 1; i >= 0; i--)
                 yield return list[i];
         }
 
         //----------------------------------------------------------------------
-        public IDisposable Subscribe(Func<StatusEvent, Task> observer)
+        public IDisposable SubscribePath(Func<StatusEvent, Task> observer)
         {
-            int num;
-            Subscription sub;
+            List<StatusEvent> events;
 
-            num = ++_subnum;
-            sub = new Subscription(() => _subscriptions.TryRemove(num, out var _), observer);
-            _subscriptions.TryAdd(num, sub);
+            events = new List<StatusEvent>();
 
-            try
-            {
-                // Send initial state...
-                sub.Send(new StatusEvent(StatusEventType.BeginInitialize, 0));
+            // Send initial state...
+            events.Add(new StatusEvent(StatusEventType.BeginInitialize, 0));
 
-                // Parent nodes
-                foreach (Node node in PathFromRoot())
-                    sub.Send(new StatusEvent(StatusEventType.ParentChanged, node._id, node._name, node._path, node._status));
+            // Parent nodes
+            foreach (PathNode node in PathFromRoot())
+                events.Add(new StatusEvent(StatusEventType.ParentChanged, node._id, node._name, node._path, node._status));
 
-                // Self
-                sub.Send(new StatusEvent(StatusEventType.ParentChanged, _id, _name, null, _status));
+            // Self
+            events.Add(new StatusEvent(StatusEventType.ParentChanged, _id, _name, null, _status));
 
-                // Children nodes
-                foreach (Node node in _children.Values)
-                    sub.Send(new StatusEvent(StatusEventType.ChildAdded, node._id, node._name, node._path, node._status));
+            // Children nodes
+            foreach (PathNode node in _children.Values)
+                events.Add(new StatusEvent(StatusEventType.ChildAdded, node._id, node._name, node._path, node._status));
 
-                // Mnitors
-                foreach (Monitor monitor in _monitors.Values)
-                    sub.Send(new StatusEvent(StatusEventType.MonitorAdded, monitor.Id, monitor.Name, monitor.Text, monitor.Status));
+            // Minitors
+            foreach (Monitor monitor in _monitors.Values)
+                events.Add(new StatusEvent(StatusEventType.MonitorAdded, monitor.Id, monitor.Name, monitor.Text, monitor.Status));
 
-                sub.Send(new StatusEvent(StatusEventType.EndInitialize, 0));
-            }
-            catch (Exception e)
-            {
-                Logger.Debug(e);
-                sub.Dispose();
-                return null;
-            }
-            return sub;
+            events.Add(new StatusEvent(StatusEventType.EndInitialize, 0));
+
+            return _subscriptions.Subscribe(observer, events);
         }
 
         //----------------------------------------------------------------------
         private void Trim(DateTime utc)
         {
             bool refresh;
-            List<Node> nodesRemoveList;
+            List<PathNode> nodesRemoveList;
             List<Monitor> monRemoveList;
 
             refresh = false;
@@ -203,19 +189,19 @@ namespace Minitor.Status.Internal
             monRemoveList = null;
 
             // Clear unused children
-            foreach (Node node in _children.Values)
+            foreach (PathNode node in _children.Values)
             {
                 node.Trim(utc);
                 if (node.IsEmpty)
                 {
-                    if (nodesRemoveList == null) nodesRemoveList = new List<Node>();
+                    if (nodesRemoveList == null) nodesRemoveList = new List<PathNode>();
                     nodesRemoveList.Add(node);
                 }
             }
             if (nodesRemoveList != null)
             {
                 refresh = true;
-                foreach (Node node in nodesRemoveList)
+                foreach (PathNode node in nodesRemoveList)
                 {
                     _children.Remove(node._name);
                     SendEvent(StatusEventType.ChildRemoved, node._id, node._name);
@@ -229,10 +215,10 @@ namespace Minitor.Status.Internal
                 {
                     if (monitor.KeepExpired)
                     {
-                        if (monitor.Status != StatusState.Dead)
+                        if (monitor.Status != StatusState.Critical)
                         {
                             refresh = true;
-                            monitor.Status = StatusState.Dead;
+                            monitor.Status = StatusState.Critical;
                             SendEvent(StatusEventType.MonitorChanged, monitor.Id, monitor.Name, monitor.Text, monitor.Status);
                         }
                     }
@@ -245,7 +231,7 @@ namespace Minitor.Status.Internal
                 }
                 else if (utc >= monitor.ValidUntil)
                 {
-                    if (monitor.Status != StatusState.Unknown && monitor.Status != StatusState.Completed)
+                    if (monitor.Status != StatusState.Unknown)
                     {
                         refresh = true;
                         monitor.Status = StatusState.Unknown;
@@ -270,22 +256,15 @@ namespace Minitor.Status.Internal
         private void SendEvent(StatusEventType type, int id, string name = null, string text = null, StatusState status = StatusState.Unknown)
         {
             if (_subscriptions.Count > 0)
-                SendEvent(new StatusEvent(type, id, name, text, status));
-        }
-
-        //----------------------------------------------------------------------
-        private void SendEvent(StatusEvent evnt)
-        {
-            foreach (Subscription sub in _subscriptions.Values)
-                sub.Send(evnt);
+                _subscriptions.Send(new StatusEvent(type, id, name, text, status));
         }
 
         //----------------------------------------------------------------------
         private void CascadeEvent(StatusEvent evnt)
         {
-            foreach (Node node in _children.Values)
+            foreach (PathNode node in _children.Values)
             {
-                node.SendEvent(evnt);
+                node._subscriptions.Send(evnt);
                 node.CascadeEvent(evnt);
             }
         }

@@ -157,19 +157,18 @@ namespace Minitor.Web
         // Kind of ugly, but indeed goto has some use sometimes
         private void HandleApiRequest(int reqnum, string path, HttpListenerRequest request, HttpListenerResponse response)
         {
-            StatusState sta;
-            string str, s;
-            TimeSpan ts;
-
+            string str;
             string monitor;
             string text;
             StatusState? status;
             TimeSpan? validity;
             TimeSpan? expiration;
+            bool? heartbeat;
 
             status = null;
             monitor = text = null;
             validity = expiration = null;
+            heartbeat = null;
 
             foreach (string key in request.QueryString.AllKeys)
             {
@@ -180,7 +179,7 @@ namespace Minitor.Web
                 {
                     if (monitor != null) goto BadRequest;
                     monitor = request.QueryString[key];
-                    if (monitor == null) goto BadRequest;
+                    if (string.IsNullOrWhiteSpace(monitor)) goto BadRequest;
                 }
                 //--------------------------------
                 else if ("text".StartsWith(str))
@@ -192,26 +191,26 @@ namespace Minitor.Web
                 //--------------------------------
                 else if ("status".StartsWith(str))
                 {
-                    if (status.HasValue) goto BadRequest;
-                    s = request.QueryString[key];
-                    if (s == null || !Helpers.TryParseStatus(s, out sta)) goto BadRequest;
-                    status = sta;
+                    if (!Helpers.TryParseStatus(request.QueryString[key], ref status))
+                        goto BadRequest;
                 }
                 //--------------------------------
                 else if ("validity".StartsWith(str))
                 {
-                    if (validity.HasValue) goto BadRequest;
-                    s = request.QueryString[key];
-                    if (s == null || !Helpers.TryParseTimeSpan(s, out ts)) goto BadRequest;
-                    validity = ts;
+                    if (!Helpers.TryParseTimeSpan(request.QueryString[key], ref validity))
+                        goto BadRequest;
                 }
                 //--------------------------------
                 else if ("expiration".StartsWith(str))
                 {
-                    if (expiration.HasValue) goto BadRequest;
-                    s = request.QueryString[key];
-                    if (s == null || !Helpers.TryParseTimeSpan(s, out ts)) goto BadRequest;
-                    expiration = ts;
+                    if (!Helpers.TryParseTimeSpan(request.QueryString[key], ref expiration))
+                        goto BadRequest;
+                }
+                //--------------------------------
+                else if ("heartbeat".StartsWith(str))
+                {
+                    if (!Helpers.TryParseHeartBeat(request.QueryString[key], ref heartbeat))
+                        goto BadRequest;
                 }
                 //--------------------------------
                 else goto BadRequest;
@@ -226,7 +225,10 @@ namespace Minitor.Web
             if (!expiration.HasValue)
                 expiration = Configuration.StatusExpiration;
 
-            if (_manager.Update(path, monitor, text, status.Value, validity.Value, expiration.Value))
+            if (!heartbeat.HasValue)
+                heartbeat = false;
+
+            if (_manager.UpdateMonitor(path, monitor, text, status.Value, validity.Value, expiration.Value, heartbeat.Value))
             {
                 response.Close();
                 return;
@@ -262,7 +264,7 @@ namespace Minitor.Web
             using (token.Register(() => socket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Server terminating", CancellationToken.None)))
             {
                 send = new byte[256];
-                using (IDisposable sub = _manager.Subscribe(path, async (evnt)
+                using (IDisposable sub = _manager.SubscribePath(path, async (evnt)
                     => await socket.SendAsync(Web.GetEventBytes(evnt, ref send), WebSocketMessageType.Text, true, token)))
                 {
                     recv = new byte[128];
