@@ -7,12 +7,12 @@ using System.Threading.Tasks;
 namespace Minitor.Status
 {
     //--------------------------------------------------------------------------
-    // Synchronizes and manages a tree of Node and Monitor objects
+    // Synchronizes and manages a tree of path nodes and monitors
     public class StatusManager : IDisposable
     {
-        private static char[] _separators = new char[] { '/' };
+        private static readonly char[] _separators = new char[] { '/' };
 
-        private PathNode _root = new PathNode();
+        private PathRoot _root = new PathRoot();
         private Timer _timer;
 
         //----------------------------------------------------------------------
@@ -59,6 +59,18 @@ namespace Minitor.Status
                 node.UpdateMonitor(name, text, status, validity, expiration, beat);
             }
             return true;
+        }
+
+        //----------------------------------------------------------------------
+        public IDisposable SubscribeTree(Func<StatusEvent, Task> observer)
+        {
+            if (observer == null)
+                return null;
+
+            lock (_root)
+            {
+                return _root.SubscribeTree(observer);
+            }
         }
 
         //----------------------------------------------------------------------

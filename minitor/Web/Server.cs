@@ -10,7 +10,7 @@ namespace Minitor.Web
 {
     //--------------------------------------------------------------------------
     // Web server based on HttpListener
-    class Server
+    class Server: IDisposable
     {
         private StatusManager _manager;
         private HttpListener _listener;
@@ -22,6 +22,12 @@ namespace Minitor.Web
                 throw new ApplicationException("HttpListener is not supported on this platform.");
 
             _manager = new StatusManager();
+        }
+
+        //----------------------------------------------------------------------
+        public void Dispose()
+        {
+            _manager.Dispose();
         }
 
         //----------------------------------------------------------------------

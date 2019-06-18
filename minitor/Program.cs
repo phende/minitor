@@ -69,22 +69,23 @@ namespace Minitor
             if (args.Length > 1)
                 return false;
 
-            server = new Web.Server();
-            cts = new CancellationTokenSource();
-            task = server.Run(Configuration.Binding, cts.Token);
-
-            handler = (object o, ConsoleCancelEventArgs e) =>
+            using (server = new Web.Server())
             {
-                Console.WriteLine("Server stopping...");
-                e.Cancel = true;
-                cts.Cancel();
-            };
+                cts = new CancellationTokenSource();
+                task = server.Run(Configuration.Binding, cts.Token);
 
-            Console.CancelKeyPress += handler;
-            Console.WriteLine($"Server started at {Configuration.Binding}, press Ctrl+C to stop.");
-            task.Wait();
-            Console.CancelKeyPress -= handler;
+                handler = (object o, ConsoleCancelEventArgs e) =>
+                {
+                    Console.WriteLine("Server stopping...");
+                    e.Cancel = true;
+                    cts.Cancel();
+                };
 
+                Console.CancelKeyPress += handler;
+                Console.WriteLine($"Server started at {Configuration.Binding}, press Ctrl+C to stop.");
+                task.Wait();
+                Console.CancelKeyPress -= handler;
+            }
             return true;
         }
 

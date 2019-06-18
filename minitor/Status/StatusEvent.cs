@@ -1,7 +1,7 @@
 ﻿namespace Minitor.Status
 {
     //--------------------------------------------------------------------------
-    // A change event a distributed to listeners
+    // A change event as distributed to listeners
     public class StatusEvent
     {
         //----------------------------------------------------------------------
