@@ -4,7 +4,7 @@ This page walks through a test run of minitor, and shortly describes how it work
 
 # Requirements
 
-Please make sure you have installed the required components.
+Please make sure you have installed the required components:
 
 - On Linux and macOs, you will need [.NET Core 2.0](https://www.microsoft.com/net) or later
 - Windows 8/2012 and later already come with the required .NET Framework version
